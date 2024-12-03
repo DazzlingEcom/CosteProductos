@@ -22,9 +22,6 @@ if uploaded_file is not None:
     # Limpiar los nombres de las columnas
     df.columns = df.columns.str.strip().str.lower()
 
-    # Mostrar columnas procesadas
-    st.write("Columnas después de limpiar:", list(df.columns))
-
     try:
         # Renombrar las columnas para que coincidan con las esperadas
         column_mapping = {
@@ -45,26 +42,37 @@ if uploaded_file is not None:
         df["cantidad"] = pd.to_numeric(df["cantidad"], errors="coerce")
         df["fecha_venta"] = pd.to_datetime(df["fecha_venta"], errors="coerce", format='%d/%m/%Y')
 
-        # Ordenar por fecha y SKU
-        df = df.sort_values(by=["fecha_venta", "sku"])
+        # Crear un rango de fechas completo
+        min_date = df["fecha_venta"].min()
+        max_date = df["fecha_venta"].max()
+        all_dates = pd.date_range(start=min_date, end=max_date, freq='D')
 
         # Agrupar por SKU y Fecha, sumando cantidades
         grouped_data = df.groupby(["fecha_venta", "sku"]).agg({
             "cantidad": "sum"
         }).reset_index()
 
-        grouped_data.columns = ["Fecha de Venta", "SKU", "Cantidad Total"]
+        # Crear un DataFrame con todas las combinaciones de fechas y SKUs
+        all_skus = df["sku"].unique()
+        all_combinations = pd.MultiIndex.from_product([all_dates, all_skus], names=["fecha_venta", "sku"])
+        all_combinations_df = pd.DataFrame(index=all_combinations).reset_index()
+
+        # Unir los datos agrupados con el rango completo
+        merged_data = pd.merge(all_combinations_df, grouped_data, on=["fecha_venta", "sku"], how="left").fillna(0)
+
+        # Renombrar las columnas finales
+        merged_data.columns = ["Fecha de Venta", "SKU", "Cantidad Total"]
 
         # Mostrar tablas interactivas en la aplicación
-        st.subheader("Cantidad de Productos por SKU y Fecha:")
-        st.dataframe(grouped_data)
+        st.subheader("Cantidad de Productos por SKU y Fecha (Con Fechas Completas):")
+        st.dataframe(merged_data)
 
         # Exportar datos procesados
-        csv_data = grouped_data.to_csv(index=False).encode("utf-8")
+        csv_data = merged_data.to_csv(index=False).encode("utf-8")
         st.download_button(
             label="Descargar Cantidades por SKU y Fecha",
             data=csv_data,
-            file_name="cantidad_por_sku_y_fecha.csv",
+            file_name="cantidad_por_sku_y_fecha_completo.csv",
             mime="text/csv"
         )
 
