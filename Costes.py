@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from io import BytesIO
 
 # Título de la aplicación
 st.title("Procesador de Archivo .xlsx - Cantidad de Productos por SKU y Fecha")
@@ -66,11 +67,16 @@ if uploaded_file is not None:
         st.subheader("Cantidad de Productos por SKU y Fecha:")
         st.dataframe(merged_data)
 
-        # Descargar los datos procesados
-        excel_data = merged_data.to_excel(index=False, engine='openpyxl')
+        # Exportar los datos procesados a un archivo Excel
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            merged_data.to_excel(writer, index=False, sheet_name="Datos Procesados")
+        processed_data = output.getvalue()
+
+        # Botón de descarga
         st.download_button(
             label="Descargar Archivo Excel",
-            data=excel_data,
+            data=processed_data,
             file_name="cantidad_por_sku_y_fecha.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
