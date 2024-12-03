@@ -60,17 +60,20 @@ if uploaded_file is not None:
         # Unir los datos agrupados con el rango completo
         merged_data = pd.merge(all_combinations_df, grouped_data, on=["fecha_venta", "sku"], how="left").fillna(0)
 
+        # Filtrar filas con cantidad igual a 0
+        filtered_data = merged_data[merged_data["cantidad"] > 0]
+
         # Renombrar columnas para claridad
-        merged_data.columns = ["Fecha de Venta", "SKU", "Cantidad Total"]
+        filtered_data.columns = ["Fecha de Venta", "SKU", "Cantidad Total"]
 
         # Mostrar los datos procesados
-        st.subheader("Cantidad de Productos por SKU y Fecha:")
-        st.dataframe(merged_data)
+        st.subheader("Cantidad de Productos por SKU y Fecha (sin valores 0):")
+        st.dataframe(filtered_data)
 
         # Exportar los datos procesados a un archivo Excel
         output = BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            merged_data.to_excel(writer, index=False, sheet_name="Datos Procesados")
+            filtered_data.to_excel(writer, index=False, sheet_name="Datos Procesados")
         processed_data = output.getvalue()
 
         # Botón de descarga
