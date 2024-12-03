@@ -22,6 +22,13 @@ if uploaded_file is not None:
     st.dataframe(df.head())
 
     try:
+        # Renombrar las columnas para que coincidan con las esperadas
+        column_mapping = {
+            "Cantidad del producto": "cantidad",
+            "fecha": "fecha_venta"
+        }
+        df.rename(columns=column_mapping, inplace=True)
+
         # Validar columnas requeridas
         required_columns = ["SKU", "cantidad", "fecha_venta"]
         missing_columns = [col for col in required_columns if col not in df.columns]
@@ -39,7 +46,7 @@ if uploaded_file is not None:
         # Ordenar por fecha y SKU
         df = df.sort_values(by=["fecha_venta", "SKU"])
 
-        # Agrupar por fecha y SKU, sumando cantidades
+        # Agrupar por SKU y Fecha, sumando cantidades
         grouped_data = df.groupby(["fecha_venta", "SKU"]).agg({
             "cantidad": "sum",
             "costo_producto": "sum"
