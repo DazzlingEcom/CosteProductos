@@ -60,27 +60,34 @@ if uploaded_file is not None:
         # Unir los datos agrupados con el rango completo
         merged_data = pd.merge(all_combinations_df, grouped_data, on=["fecha_venta", "sku"], how="left").fillna(0)
 
+        # Crear un rango completo de fechas
+        full_date_range = pd.DataFrame({'fecha_venta': all_dates})
+        aggregated_data = merged_data.groupby(["fecha_venta"]).agg({"cantidad": "sum"}).reset_index()
+
+        # Unir con el rango completo para garantizar que todas las fechas aparezcan
+        final_data = pd.merge(full_date_range, aggregated_data, on="fecha_venta", how="left").fillna(0)
+
         # Filtrar filas con cantidad igual a 0
-        filtered_data = merged_data[merged_data["cantidad"] > 0]
+        final_data = final_data[final_data["cantidad"] > 0]
 
         # Renombrar columnas para claridad
-        filtered_data.columns = ["Fecha de Venta", "SKU", "Cantidad Total"]
+        final_data.columns = ["Fecha de Venta", "Cantidad Total"]
 
         # Mostrar los datos procesados
         st.subheader("Cantidad de Productos por SKU y Fecha (sin valores 0):")
-        st.dataframe(filtered_data)
+        st.dataframe(final_data)
 
         # Exportar los datos procesados a un archivo Excel
         output = BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            filtered_data.to_excel(writer, index=False, sheet_name="Datos Procesados")
+            final_data.to_excel(writer, index=False, sheet_name="Datos Procesados")
         processed_data = output.getvalue()
 
         # Botón de descarga
         st.download_button(
             label="Descargar Archivo Excel",
             data=processed_data,
-            file_name="cantidad_por_sku_y_fecha.xlsx",
+            file_name="cantidad_por_fecha.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
