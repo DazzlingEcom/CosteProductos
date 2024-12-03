@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Título de la aplicación
-st.title("Procesador de CSV - Costes por SKU y Fecha de Venta")
+st.title("Procesador de CSV - Cantidad de Productos por SKU y Fecha de Venta")
 
 # Subida del archivo CSV
 uploaded_file = st.file_uploader("Sube un archivo CSV", type="csv")
@@ -45,45 +45,26 @@ if uploaded_file is not None:
         df["cantidad"] = pd.to_numeric(df["cantidad"], errors="coerce")
         df["fecha_venta"] = pd.to_datetime(df["fecha_venta"], errors="coerce", format='%d/%m/%Y')
 
-        # Crear una columna para los costos de productos por SKU
-        df["costo_producto"] = 0.0
-
         # Ordenar por fecha y SKU
         df = df.sort_values(by=["fecha_venta", "sku"])
 
         # Agrupar por SKU y Fecha, sumando cantidades
         grouped_data = df.groupby(["fecha_venta", "sku"]).agg({
-            "cantidad": "sum",
-            "costo_producto": "sum"
+            "cantidad": "sum"
         }).reset_index()
 
-        grouped_data.columns = ["Fecha de Venta", "SKU", "Cantidad Total", "Costo Producto Total"]
-
-        # Crear un resumen de costos totales por fecha
-        resumen_costos = grouped_data.groupby("Fecha de Venta")["Costo Producto Total"].sum().reset_index()
-        resumen_costos.columns = ["Fecha de Venta", "Costo Total por Día"]
+        grouped_data.columns = ["Fecha de Venta", "SKU", "Cantidad Total"]
 
         # Mostrar tablas interactivas en la aplicación
-        st.subheader("Datos Agrupados:")
+        st.subheader("Cantidad de Productos por SKU y Fecha:")
         st.dataframe(grouped_data)
 
-        st.subheader("Resumen de Costos por Fecha:")
-        st.dataframe(resumen_costos)
-
         # Exportar datos procesados
-        csv_resumen = resumen_costos.to_csv(index=False).encode("utf-8")
-        st.download_button(
-            label="Descargar Resumen de Costos por Fecha",
-            data=csv_resumen,
-            file_name="resumen_costos_por_fecha.csv",
-            mime="text/csv"
-        )
-
         csv_data = grouped_data.to_csv(index=False).encode("utf-8")
         st.download_button(
-            label="Descargar Datos Completos con Costos",
+            label="Descargar Cantidades por SKU y Fecha",
             data=csv_data,
-            file_name="costos_por_sku.csv",
+            file_name="cantidad_por_sku_y_fecha.csv",
             mime="text/csv"
         )
 
