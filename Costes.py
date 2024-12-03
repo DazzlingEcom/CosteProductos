@@ -45,7 +45,7 @@ if uploaded_file is not None:
         df["cantidad"] = pd.to_numeric(df["cantidad"], errors="coerce")
         df["fecha_venta"] = pd.to_datetime(df["fecha_venta"], errors="coerce", format='%d/%m/%Y')
 
-        # Crear una columna editable para los costos de productos por SKU
+        # Crear una columna para los costos de productos por SKU
         df["costo_producto"] = 0.0
 
         # Ordenar por fecha y SKU
@@ -64,12 +64,10 @@ if uploaded_file is not None:
         resumen_costos.columns = ["Fecha de Venta", "Costo Total por Día"]
 
         # Mostrar tablas interactivas en la aplicación
-        st.subheader("Completa los Costos por SKU:")
-        edited_data = st.experimental_data_editor(grouped_data, num_rows="dynamic", key="editor")
+        st.subheader("Datos Agrupados:")
+        st.dataframe(grouped_data)
 
         st.subheader("Resumen de Costos por Fecha:")
-        resumen_costos = edited_data.groupby("Fecha de Venta")["Costo Producto Total"].sum().reset_index()
-        resumen_costos.columns = ["Fecha de Venta", "Costo Total por Día"]
         st.dataframe(resumen_costos)
 
         # Exportar datos procesados
@@ -81,7 +79,7 @@ if uploaded_file is not None:
             mime="text/csv"
         )
 
-        csv_data = edited_data.to_csv(index=False).encode("utf-8")
+        csv_data = grouped_data.to_csv(index=False).encode("utf-8")
         st.download_button(
             label="Descargar Datos Completos con Costos",
             data=csv_data,
