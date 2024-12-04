@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from io import BytesIO
+import re
 
 # Título de la aplicación
 st.title("Procesador de Archivo .xlsx - Cantidad de Productos por SKU y Fecha")
@@ -65,6 +66,14 @@ if uploaded_file is not None:
 
         # Renombrar columnas para claridad
         filtered_data.columns = ["Fecha de Venta", "SKU", "Cantidad Total"]
+
+        # Modificar los SKU para agregar un guion bajo si no lo tienen
+        def fix_sku(sku):
+            if isinstance(sku, str):
+                return re.sub(r"^(EC) (\d+)$", r"\1_\2", sku)
+            return sku
+
+        filtered_data["SKU"] = filtered_data["SKU"].apply(fix_sku)
 
         # Mostrar los datos procesados
         st.subheader("Cantidad de Productos por SKU y Fecha (sin valores 0):")
