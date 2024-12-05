@@ -4,10 +4,10 @@ from io import BytesIO
 import re
 
 # Título de la aplicación
-st.title("Procesador de Archivo .xlsx - Cantidad de Productos por SKU y Fecha")
+st.title("Procesador de Archivo .xlsx - Cantidad de Productos por SKU y Fecha desde EcommApp")
 
 # Subida del archivo .xlsx
-uploaded_file = st.file_uploader("Sube un archivo .xlsx", type="xlsx")
+uploaded_file = st.file_uploader("Subí un archivo .xlsx de EcommApp", type="xlsx")
 
 if uploaded_file is not None:
     try:
